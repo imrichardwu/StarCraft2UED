@@ -357,13 +357,13 @@ void BasicSc2Bot::OnStep() {
 	//BasicSc2Bot::Debugging();
 
 	if (step_counter > 10) {
-		BasicSc2Bot::depot_control();
+		//BasicSc2Bot::depot_control();
 		BasicSc2Bot::ManageEconomy();
-		BasicSc2Bot::ExecuteBuildOrder();
-		BasicSc2Bot::ManageProduction();
+		//BasicSc2Bot::ExecuteBuildOrder();
+		//BasicSc2Bot::ManageProduction();
 		BasicSc2Bot::ControlUnits();
-		BasicSc2Bot::Defense();
-		BasicSc2Bot::Offense();
+		//BasicSc2Bot::Defense();
+		//BasicSc2Bot::Offense();
 	}
 }
 

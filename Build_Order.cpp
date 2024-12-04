@@ -8,18 +8,18 @@ void BasicSc2Bot::ExecuteBuildOrder() {
 
 	// what do I do if some buildings are destroyed?
 	BuildBarracks();
-	BuildFactory();
+	//BuildFactory();
 	BuildOrbitalCommand();
-	BuildAddon();
-	BuildStarport();
-	Swap(swap_a, swap_b, false);
-	BuildFusionCore();
+	//BuildAddon();
+	//BuildStarport();
+	//Swap(swap_a, swap_b, false);
+	//BuildFusionCore();
 
 	if (current_gameloop % 46 == 0)
 	{
 		// Building one more battlecruiser might be more helpful??
-		BuildEngineeringBay();
-		BuildArmory();
+		//BuildEngineeringBay();
+		//BuildArmory();
 	}
 }
 

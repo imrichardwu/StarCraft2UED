@@ -54,40 +54,8 @@ bool BasicSc2Bot::IsBuildingProgress(const Unit* b) const {
 }
 
 bool BasicSc2Bot::NeedExpansion() const {
-	const ObservationInterface* observation = Observation();
 
-	// Check if we have any bases
-	Units all_bases = observation->GetUnits(Unit::Self, IsTownHall());
-	Units bases;
-
-	// Filter out completed bases
-	for (const auto& base : all_bases) {
-		if (base->build_progress == 1.0f) {
-			bases.push_back(base);
-		}
-	}
-
-
-	if (bases.empty()) {
-		return true; // Need to rebuild if all bases are lost
-	}
-
-	const size_t max_bases = 3;
-	if (bases.size() >= max_bases) {
-		return false; // Do not expand if we've reached the maximum number of bases
-	}
-
-	// Calculate total ideal workers
-	size_t total_ideal_workers = 0;
-	for (const auto& base : bases) {
-		total_ideal_workers += base->ideal_harvesters;
-	}
-
-	// Get current number of SCVs
-	size_t num_scvs = observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_SCV)).size();
-
-	// Expand when we have enough SCVs to saturate our current bases
-	return num_scvs >= 0.95f * total_ideal_workers;
+	return true;
 }
 
 Point3D BasicSc2Bot::GetNextExpansion() const {
