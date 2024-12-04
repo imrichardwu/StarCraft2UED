@@ -227,6 +227,14 @@ void BasicSc2Bot::AllOutRush() {
 		}
 	}
 
+	// Left 1 tank to defend the base
+	if (!tank_near_rally.empty()) {
+		const Unit* tank_to_defend = tank_near_rally.front();
+		if (tank_to_defend) {
+			tank_near_rally.erase(tank_near_rally.begin());
+		}
+	}
+
 	for (const auto& tank : tank_near_rally) {
 		if (tank->orders.empty() && Distance2D(tank->pos, attack_target) > 5.0f) {
 			unit_attacking[tank] = true;
