@@ -81,7 +81,7 @@ void BasicSc2Bot::Offense() {
 				bool attack = true;
 				for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Self)) {
 					if (unit->unit_type == UNIT_TYPEID::TERRAN_BATTLECRUISER && battlecruiser_retreating[unit]) {
-						if (unit->health < 0.4f * unit->health_max) {
+						if (unit->health < 150.0f) {
 							attack = false;
 							break;
 						}
