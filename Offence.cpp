@@ -10,7 +10,6 @@ void BasicSc2Bot::Offense() {
 
 	// Check if we should start attacking
 	if (!is_attacking) {
-		std::cout << "!is_attacking" << std::endl;
 		if (starports.empty()) {
 			return;
 		}
@@ -37,19 +36,14 @@ void BasicSc2Bot::Offense() {
 		// Check if we have enough army to attack
 		// At least one battlecruisers is currently in combat and not retreating
 		if (UnitsInCombat((UNIT_TYPEID::TERRAN_BATTLECRUISER)) > 0) {
-			bool not_retreating = false;
-			for (const auto& battlecruiser : battlecruisers) {
-				if (!battlecruiser_retreating[battlecruiser]) {
-					not_retreating = true;
-					break;
-				}
-			}
-			if (EnoughArmy() && not_retreating) {
+			if (EnoughArmy() && !AllRetreating()) {
 				if (need_clean_up) {
+					std::cout << "Cleanup : Battlecruiser in combat" << std::endl;
 					CleanUp();
 				}
 				else {
 					// Continue attacking
+					std::cout << "Rush : Battlecruiser in combat" << std::endl;
 					AllOutRush();
 				}
 				return;
@@ -58,15 +52,18 @@ void BasicSc2Bot::Offense() {
 		// No Battlecruisers in combat
 		else {
 			// No Battlecruisers trained yet, or all destroyed
+			std::cout << num_battlecruisers << std::endl;
 			if (num_battlecruisers == 0) {
 				if (!starport->orders.empty()) {
 					for (const auto& order : starport->orders) {
 						if (order.ability_id == ABILITY_ID::TRAIN_BATTLECRUISER) {
 							if (order.progress >= timing - 0.02f && order.progress <= timing + 0.02f) {
 								if (need_clean_up) {
+									std::cout << "Cleanup : First Rush" << std::endl;
 									CleanUp();
 								}
 								else {
+									std::cout << "Rush : First Rush" << std::endl;
 									// Continue attacking
 									AllOutRush();
 								}
@@ -76,24 +73,17 @@ void BasicSc2Bot::Offense() {
 					}
 				}
 			}
-			// Battlecruisers are not in combat, and retreating
+			// Battlecruisers are not in combat, and there are multiple battlecruisers
 			else {
-				bool attack = true;
-				for (const auto& unit : Observation()->GetUnits(Unit::Alliance::Self)) {
-					if (unit->unit_type == UNIT_TYPEID::TERRAN_BATTLECRUISER && battlecruiser_retreating[unit]) {
-						if (unit->health < 150.0f) {
-							attack = false;
-							break;
-						}
-					}
-				}
 				// If all retreating Battlecruisers are healthy, execute the attack
-				if (attack) {
+				if (!AllRetreating()) {
 					if (need_clean_up) {
+						std::cout << "Clean up : All Battlecruisers are not fully retrating" << std::endl;
 						CleanUp();
 					}
 					else {
 						// Continue attacking
+						std::cout << "Rush : All Battlecruisers are not fully retrating" << std::endl;
 						AllOutRush();
 					}
 				}
@@ -101,7 +91,6 @@ void BasicSc2Bot::Offense() {
 		}
 	}
 	else {
-		std::cout << "is_attacking" << std::endl;
 		ContinuousMove();
         // If army is severely depleted, retreat and rebuild before attacking again
         if (AllRetreating()) {
@@ -368,7 +357,7 @@ bool BasicSc2Bot::AllRetreating() {
     }
 
 	for (const auto& battlecruiser : battlecruisers) {
-		if (!battlecruiser_retreating[battlecruiser] || battlecruiser->health > 150.0f) {
+		if (battlecruiser->health > 150.0f) {
 			retreat = false;
 		}
 	}
