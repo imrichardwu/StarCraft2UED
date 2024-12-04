@@ -393,7 +393,7 @@ void BasicSc2Bot::OnUnitIdle(const Unit* unit)
 		}
 		break;
 	case UNIT_TYPEID::TERRAN_BATTLECRUISER:
-		Retreat(unit);
+		Actions()->UnitCommand(unit, ABILITY_ID::MOVE_MOVE, retreat_location);
 		break;
 	case UNIT_TYPEID::TERRAN_SCV:
 		HarvestIdleWorkers(unit);
@@ -542,6 +542,11 @@ void BasicSc2Bot::OnUpgradeCompleted(UpgradeID upgrade_id) {
 
 void BasicSc2Bot::OnUnitDestroyed(const Unit* unit) {
 
+	auto structure = enemy_structures.find(unit->tag);
+	if (structure != enemy_structures.end()) {
+		enemy_structures.erase(structure);
+	}
+
 	if (IsFriendlyStructure(*unit))
 	{
 		update_build_map(false, unit);
@@ -678,7 +683,17 @@ void BasicSc2Bot::OnUnitDestroyed(const Unit* unit) {
 }
 
 void BasicSc2Bot::OnUnitEnterVision(const Unit* unit) {
-	return;
+
+	if (unit->alliance != Unit::Alliance::Enemy) {
+		return;
+	}
+
+	const auto& target_type_data = Observation()->GetUnitTypeData().at(unit->unit_type);
+
+	if (std::find(target_type_data.attributes.begin(), target_type_data.attributes.end(), Attribute::Structure)
+		!= target_type_data.attributes.end()) {
+		enemy_structures[unit->tag] = unit;
+	}
 }
 
 // Testing commands

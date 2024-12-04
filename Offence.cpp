@@ -10,7 +10,7 @@ void BasicSc2Bot::Offense() {
 
 	// Check if we should start attacking
 	if (!is_attacking) {
-
+		std::cout << "!is_attacking" << std::endl;
 		if (starports.empty()) {
 			return;
 		}
@@ -101,10 +101,8 @@ void BasicSc2Bot::Offense() {
 		}
 	}
 	else {
+		std::cout << "is_attacking" << std::endl;
 		ContinuousMove();
-		// Check if our army is mostly dead
-		Units marines = observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_MARINE));
-		Units siege_tanks = observation->GetUnits(Unit::Alliance::Self, IsUnit(UNIT_TYPEID::TERRAN_SIEGETANK));
         // If army is severely depleted, retreat and rebuild before attacking again
         if (AllRetreating()) {
             is_attacking = false;
@@ -168,54 +166,28 @@ void BasicSc2Bot::AllOutRush() {
 
 	// Check for enemy units or structures near the attack target, including snapshots
 	for (const auto& enemy_unit : observation->GetUnits(Unit::Alliance::Enemy)) {
-		if ((enemy_unit->display_type == Unit::DisplayType::Visible || enemy_unit->display_type == Unit::DisplayType::Snapshot) &&
-			enemy_unit->is_alive &&
-			Distance2D(enemy_unit->pos, attack_target) < 25.0f) {
-			enemy_base_destroyed = false;
-			break;
+		if (((enemy_unit->display_type == Unit::DisplayType::Visible) ||
+			 (enemy_unit->display_type == Unit::DisplayType::Snapshot)) &&
+				enemy_unit->is_alive &&
+				Distance2D(enemy_unit->pos, attack_target) <= 13.0f) {
+				enemy_base_destroyed = false;
+				break;
 		}
 	}
 
 	if (enemy_base_destroyed) {
-		const Unit* closest_unit = nullptr;
-		float min_distance = std::numeric_limits<float>::max();
-
-		// Search for any visible unit left on the map
-		for (const auto& enemy_unit : observation->GetUnits(Unit::Alliance::Enemy)) {
-			if (enemy_unit->display_type == Unit::DisplayType::Visible && enemy_unit->is_alive) {
-				float distance = Distance2D(enemy_unit->pos, start_location);
-				if (distance < min_distance) {
-					min_distance = distance;
-					closest_unit = enemy_unit;
-				}
-			}
-		}
-
+		const Unit* closest_structure = GetClosestEnemyStructure(enemy_start_location);
 		// If a unit is found, set it as the new attack target
-		if (closest_unit) {
-			attack_target = closest_unit->pos;
+		if (closest_structure) {
+			std::cout << "Closest structure found" << std::endl;
+			std::cout << "Structure position: " << closest_structure->pos.x << ", " << closest_structure->pos.y << std::endl;
+			std::cout << "Structure name: " << closest_structure->unit_type.to_string() << std::endl;
+			attack_target = closest_structure->pos;
 		}
-		// No visible units left, search for snapshot units
+		// No visible units left, begins scout
 		else {
-			// Search for the closest snapshot unit
-			for (const auto& enemy_unit : observation->GetUnits(Unit::Alliance::Enemy)) {
-				if (enemy_unit->display_type == Unit::DisplayType::Snapshot && enemy_unit->is_alive) {
-					float distance = Distance2D(enemy_unit->pos, start_location);
-					if (distance < min_distance) {
-						min_distance = distance;
-						closest_unit = enemy_unit;
-					}
-				}
-			}
-			// If a snapshot unit is found, set it as the new attack target
-			if (closest_unit) {
-				attack_target = closest_unit->pos;
-			}
-			// When there are no snapshot units
-			else {
-				need_clean_up = true;
-				return;
-			}
+			need_clean_up = true;
+			return;
 		}
 	}
 
@@ -228,7 +200,7 @@ void BasicSc2Bot::AllOutRush() {
 	}
 
 	// Left 1 tank to defend the base
-	if (!tank_near_rally.empty()) {
+	if (!tank_near_rally.empty() && tank_near_rally.size() >= 2) {
 		const Unit* tank_to_defend = tank_near_rally.front();
 		if (tank_to_defend) {
 			tank_near_rally.erase(tank_near_rally.begin());
@@ -286,10 +258,19 @@ void BasicSc2Bot::CleanUp() {
 		if ((enemy_unit->display_type == Unit::DisplayType::Visible ||
 			enemy_unit->display_type == Unit::DisplayType::Snapshot) &&
 			enemy_unit->is_alive &&
-			Distance2D(enemy_unit->pos, attack_target) < 25.0f) {
+			Distance2D(enemy_unit->pos, attack_target) < 13.0f) {
 			need_clean_up = false;
 			break;
 		}
+	}
+
+	const Unit* closest_structure = GetClosestEnemyStructure(enemy_start_location);
+
+	if (closest_structure) {
+		std::cout << "Closest structure found" << std::endl;
+		std::cout << "Structure position: " << closest_structure->pos.x << ", " << closest_structure->pos.y << std::endl;
+		std::cout << "Structure name: " << closest_structure->unit_type.to_string() << std::endl;
+		attack_target = closest_structure->pos;
 	}
 
 	// Move units to the target location
@@ -393,4 +374,25 @@ bool BasicSc2Bot::AllRetreating() {
 	}
 
 	return retreat;
+}
+
+const Unit* BasicSc2Bot::GetClosestEnemyStructure(const Point2D& reference_point){
+
+	const Unit* closest_structure = nullptr;
+	float min_distance = std::numeric_limits<float>::max();
+
+	if (!enemy_structures.empty()) {
+		for (const auto& entry : enemy_structures) {
+			const Unit* structure = entry.second;
+			if (structure && structure->is_alive) {
+				float distance = Distance2D(structure->pos, reference_point);
+				if (distance < min_distance) {
+					min_distance = distance;
+					closest_structure = structure;
+				}
+			}
+		}
+	}
+
+	return closest_structure;
 }

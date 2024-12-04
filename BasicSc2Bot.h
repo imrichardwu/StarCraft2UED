@@ -251,6 +251,9 @@ private:
 	// Determines if units are attacking.
 	std::unordered_map<const Unit*, bool> unit_attacking;
 
+	// Saves all discovered enemy structures
+	std::unordered_map<Tag, const Unit*> enemy_structures;
+
 	// Attack target for offense
 	Point2D attack_target;
 
@@ -340,6 +343,9 @@ private:
 
 	// Get closest target to the unit
 	const Unit* GetClosestTarget(const Unit* unit);
+
+	// Get closest structure from a point
+	const Unit* GetClosestEnemyStructure(const Point2D& reference);
 
 	// Kite a marine
 	void KiteMarine(const Unit* marine, const Unit* target, bool advance, float distance);
